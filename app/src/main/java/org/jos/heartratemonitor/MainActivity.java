@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
   private BluetoothAdapter mBluetoothAdapter;
   private List mLeDevices = new ArrayList<BluetoothDevice>();
   private boolean isScanning;
+  private boolean bleSupported = false;
+  private Button connectButton;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -47,15 +50,30 @@ public class MainActivity extends AppCompatActivity {
       }
     });
 
+    connectButton = (Button) findViewById(R.id.connectButton);
+    connectButton.setEnabled(false);
+
     if (bleSupport()){
       ((TextView)findViewById(R.id.state)).setText(R.string.ble_available);
       bleEnabled();
       if (mBluetoothAdapter.isEnabled()){
-        startScanning();
+        bleSupported = true;
       }
     }
     else {
       ((TextView)findViewById(R.id.state)).setText(R.string.ble_not_supported);
+    }
+  }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+    if (bleSupported) {
+      ((TextView)findViewById(R.id.state)).setText("Starting scanner");
+      startScanning();
+    }
+    else {
+      ((TextView)findViewById(R.id.state)).setText("BLE does not seem to be available");
     }
   }
 
@@ -115,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
           isScanning = true;
           addDevice(device, rssi, scanRecord);
-          Log.i("SCANNER", "Got a result: " + device.getName() + " " + rssi + " " + scanRecord.toString());
+          Log.i("BLE", "Got a result: " + device.getName() + " " + rssi + " " + scanRecord.toString());
         }
       });
     }
@@ -126,6 +144,15 @@ public class MainActivity extends AppCompatActivity {
   private void addDevice(BluetoothDevice device, int rssi, byte[] scanRecord) {
     if (!mLeDevices.contains(device)) {
       mLeDevices.add(device);
+      // Running on UIThread so this is fine here
+      connectButton.setEnabled(true);
+      connectButton.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          BluetoothDevice first = (BluetoothDevice) mLeDevices.get(0);
+          connectToGattServer(first);
+        }
+      });
     }
   }
 
@@ -143,6 +170,18 @@ public class MainActivity extends AppCompatActivity {
       return;
     }
   }
+
+
+  // Scanning code was ^^^^^
+  // Connection code is from now on
+  private void connectToGattServer(final BluetoothDevice device){
+    Log.i("BLE", "Connecting with name: " + device.getName());
+    Log.i("BLE", "Connecting with address: " + device.getAddress());
+    // Running on UIThread so this is fine here
+    ((TextView)findViewById(R.id.state)).setText("Connecting to " + device.getName() +
+        " at address: " + device.getAddress());
+  }
+  // Connection code was ^^^^^
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
