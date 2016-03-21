@@ -3,12 +3,17 @@ package org.jos.heartratemonitor;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -32,7 +37,10 @@ public class MainActivity extends AppCompatActivity {
   private List mLeDevices = new ArrayList<BluetoothDevice>();
   private boolean isScanning;
   private boolean bleSupported = false;
+  private String deviceAddress;
   private Button connectButton;
+  private boolean connected = false;
+  private BluetoothLeService bluetoothLeService;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +66,10 @@ public class MainActivity extends AppCompatActivity {
       bleEnabled();
       if (mBluetoothAdapter.isEnabled()){
         bleSupported = true;
+        // Initialise the Service if BLE is available and enabled.
+        Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
+        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+        Log.i("BLE", "Sent Intent to initialise the Service; should run from now on.");
       }
     }
     else {
@@ -68,13 +80,29 @@ public class MainActivity extends AppCompatActivity {
   @Override
   protected void onResume() {
     super.onResume();
+    // TODO (jos) the logic here should change. Scan should be a button, and here should be some of
+    // the code in the connect button listener.
     if (bleSupported) {
       ((TextView)findViewById(R.id.state)).setText("Starting scanner");
+      registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
       startScanning();
     }
     else {
       ((TextView)findViewById(R.id.state)).setText("BLE does not seem to be available");
     }
+  }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    unregisterReceiver(mGattUpdateReceiver);
+  }
+
+  @Override
+  protected void onDestroy() {
+    unbindService(mServiceConnection);
+    bluetoothLeService = null;
+    super.onDestroy();
   }
 
   private boolean bleSupport() {
@@ -176,11 +204,84 @@ public class MainActivity extends AppCompatActivity {
   // Connection code is from now on
   private void connectToGattServer(final BluetoothDevice device){
     Log.i("BLE", "Connecting with name: " + device.getName());
-    Log.i("BLE", "Connecting with address: " + device.getAddress());
+    deviceAddress = device.getAddress();
+    Log.i("BLE", "Connecting with address: " + deviceAddress);
     // Running on UIThread so this is fine here
     ((TextView)findViewById(R.id.state)).setText("Connecting to " + device.getName() +
-        " at address: " + device.getAddress());
+        " at address: " + deviceAddress);
+
+    // Actual connection through the Service
+    if (bluetoothLeService != null) {
+      final boolean result = bluetoothLeService.connect(deviceAddress);
+      Log.d("BLE", "Connect request result=" + result);
+      Log.d("BLE", "Connect request result=" + result);
+      Log.d("BLE", "Connect request result=" + result);
+    }
+    else {
+      Log.i("BLE", "bluetoothLeService is null and won't connect!");
+    }
   }
+
+  // Code to manage Service lifecycle.
+  private final ServiceConnection mServiceConnection = new ServiceConnection() {
+
+    @Override
+    public void onServiceConnected(ComponentName componentName, IBinder service) {
+      Log.i("BLE", "The Service has actually connected.");
+      bluetoothLeService = ((BluetoothLeService.LocalBinder) service).getService();
+      Log.i("BLE", "The Service has actually connected, and bluetoothLeService is not null anymore.");
+      if (!bluetoothLeService.initialize()) {
+        Log.e("BLE", "Unable to initialize Bluetooth on the Service; exiting!");
+        finish();
+      }
+      // Automatically connects to the device upon successful start-up initialization.
+      if ( deviceAddress != null && !deviceAddress.isEmpty()) {
+        bluetoothLeService.connect(deviceAddress);
+      }
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName componentName) {
+      Log.i("BLE", "The Service has actually DISconnected, so it is null again.");
+      bluetoothLeService = null;
+    }
+  };
+
+  // A Broadcast Receiver to handle broadcasts from the Service
+  // Handles various events fired by the Service.
+  // ACTION_GATT_CONNECTED: connected to a GATT server.
+  // ACTION_GATT_DISCONNECTED: disconnected from a GATT server.
+  // ACTION_GATT_SERVICES_DISCOVERED: discovered GATT services.
+  // ACTION_DATA_AVAILABLE: received data from the device.  This can be a result of read
+  //                        or notification operations.
+  private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      final String action = intent.getAction();
+      if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
+        connected = true;
+        Log.i("BLE", "Connected to GATT Server");
+      } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
+        connected = false;
+        Log.i("BLE", "Connected to GATT Server");
+      } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
+        // Show all the supported services and characteristics on the user interface.
+        Log.i("BLE", "All Services: " + bluetoothLeService.getSupportedGattServices());
+      } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
+        Log.i("BLE", intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+      }
+    }
+  };
+
+  private static IntentFilter makeGattUpdateIntentFilter() {
+    final IntentFilter intentFilter = new IntentFilter();
+    intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
+    intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
+    intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
+    intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
+    return intentFilter;
+  }
+
   // Connection code was ^^^^^
 
   @Override
