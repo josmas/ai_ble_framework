@@ -41,7 +41,7 @@ public abstract class MainActivity extends AppCompatActivity {
   private String deviceAddress;
   private Button connectButton;
   private boolean connected = false;
-  private BluetoothLeService bluetoothLeService;
+  BluetoothLeService bluetoothLeService;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -266,12 +266,13 @@ public abstract class MainActivity extends AppCompatActivity {
       } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
         displayServices(bluetoothLeService.getSupportedGattServices());
       } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-        Log.i("BLE", intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+        displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
       }
     }
   };
 
   public abstract void displayServices(List<BluetoothGattService> supportedGattServices);
+  public abstract void displayData(String data);
 
   private static IntentFilter makeGattUpdateIntentFilter() {
     final IntentFilter intentFilter = new IntentFilter();

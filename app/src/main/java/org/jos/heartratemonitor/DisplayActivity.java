@@ -7,6 +7,7 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Class that extends from the MainActivity in order to define what to do with Services and
@@ -17,6 +18,7 @@ public class DisplayActivity extends MainActivity {
   private final String LIST_NAME = "NAME";
   private final String LIST_UUID = "UUID";
   private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<>();
+  private BluetoothGattCharacteristic mNotifyCharacteristic;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -64,10 +66,33 @@ public class DisplayActivity extends MainActivity {
         Log.i("BLE", "Characteristic Data is: " + currentCharaData);
         // Tried to read the value from gattCharacteristic here, but seems like it's null at this
         // stage. It needs to be read in the service (on callback).
+        // Read and Notify for the heart rate measure
+        if (UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT).equals(gattCharacteristic.getUuid())) {
+
+          final int charaProp = gattCharacteristic.getProperties();
+          if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
+            // If there is an active notification on a characteristic, clear
+            // it first so it doesn't update the data field on the user interface.
+            if (mNotifyCharacteristic != null) {
+              bluetoothLeService.setCharacteristicNotification(mNotifyCharacteristic, false);
+              mNotifyCharacteristic = null;
+            }
+            bluetoothLeService.readCharacteristic(gattCharacteristic);
+          }
+          if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
+            mNotifyCharacteristic = gattCharacteristic;
+            bluetoothLeService.setCharacteristicNotification(gattCharacteristic, true);
+          }
+        }
       }
       mGattCharacteristics.add(charas);
       gattCharacteristicData.add(gattCharacteristicGroupData);
     }
 
+  }
+
+  @Override
+  public void displayData(String data) {
+    Log.i("BLE", "We got data: " + data);
   }
 }
