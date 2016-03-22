@@ -2,6 +2,7 @@ package org.jos.heartratemonitor;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -29,7 +30,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public abstract class MainActivity extends AppCompatActivity {
 
   private static final int REQUEST_ENABLE_BT = 1;
   private static final long SCAN_PERIOD = 20000;
@@ -214,8 +215,6 @@ public class MainActivity extends AppCompatActivity {
     if (bluetoothLeService != null) {
       final boolean result = bluetoothLeService.connect(deviceAddress);
       Log.d("BLE", "Connect request result=" + result);
-      Log.d("BLE", "Connect request result=" + result);
-      Log.d("BLE", "Connect request result=" + result);
     }
     else {
       Log.i("BLE", "bluetoothLeService is null and won't connect!");
@@ -265,13 +264,14 @@ public class MainActivity extends AppCompatActivity {
         connected = false;
         Log.i("BLE", "Connected to GATT Server");
       } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
-        // Show all the supported services and characteristics on the user interface.
-        Log.i("BLE", "All Services: " + bluetoothLeService.getSupportedGattServices());
+        displayServices(bluetoothLeService.getSupportedGattServices());
       } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
         Log.i("BLE", intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
       }
     }
   };
+
+  public abstract void displayServices(List<BluetoothGattService> supportedGattServices);
 
   private static IntentFilter makeGattUpdateIntentFilter() {
     final IntentFilter intentFilter = new IntentFilter();
