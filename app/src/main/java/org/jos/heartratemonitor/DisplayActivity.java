@@ -4,7 +4,6 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
 import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +43,7 @@ public class DisplayActivity extends MainActivity {
       currentServiceData.put(LIST_NAME, serviceFound);
       currentServiceData.put(LIST_UUID, uuid);
       gattServiceData.add(currentServiceData);
+      Log.i("BLE", "\n\n-------------------------------------------------------------");
       Log.i("BLE", "Service Data is: " + currentServiceData);
 
       ArrayList<HashMap<String, String>> gattCharacteristicGroupData = new ArrayList<>();
@@ -62,6 +62,8 @@ public class DisplayActivity extends MainActivity {
         currentCharaData.put(LIST_UUID, uuid);
         gattCharacteristicGroupData.add(currentCharaData);
         Log.i("BLE", "Characteristic Data is: " + currentCharaData);
+        // Tried to read the value from gattCharacteristic here, but seems like it's null at this
+        // stage. It needs to be read in the service (on callback).
       }
       mGattCharacteristics.add(charas);
       gattCharacteristicData.add(gattCharacteristicGroupData);
