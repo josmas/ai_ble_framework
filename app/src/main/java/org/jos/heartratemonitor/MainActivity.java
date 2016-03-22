@@ -95,8 +95,12 @@ public abstract class MainActivity extends AppCompatActivity {
 
   @Override
   protected void onPause() {
+    try {
+      unregisterReceiver(mGattUpdateReceiver);
+    } catch (IllegalArgumentException e) {
+      // Ignore if the receiver was not registered.
+    }
     super.onPause();
-    unregisterReceiver(mGattUpdateReceiver);
   }
 
   @Override
