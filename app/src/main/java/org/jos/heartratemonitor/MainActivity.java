@@ -271,13 +271,24 @@ public abstract class MainActivity extends AppCompatActivity {
       } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
         displayServices(bluetoothLeService.getSupportedGattServices());
       } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-        displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+        //TODO (jos) it is possible that this is not needed when the data for the Heart Rate monitor
+        // is not treated differently in the service. For now, the String is used for that data and
+        // the byte array for any other data.
+        Bundle bundle = intent.getExtras();
+        Object data = bundle.get(BluetoothLeService.EXTRA_DATA);
+        if (data instanceof String){
+          displayData((String) data);
+        }
+        else if (data instanceof byte []){
+          displayData((byte[]) data);
+        }
       }
     }
   };
 
   public abstract void displayServices(List<BluetoothGattService> supportedGattServices);
   public abstract void displayData(String data);
+  protected abstract void displayData(byte[] data);
 
   private static IntentFilter makeGattUpdateIntentFilter() {
     final IntentFilter intentFilter = new IntentFilter();

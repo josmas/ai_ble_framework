@@ -136,6 +136,10 @@ public class BluetoothLeService extends Service {
                                final BluetoothGattCharacteristic characteristic) {
     final Intent intent = new Intent(action);
 
+    //TODO (jos) I should be able to send everything as a byte array and do the formatting specific
+    // for heart rate measurements in the Activity. That way, this Service could be Generic, as long
+    // as the code for Notifications (below) can also be made generic.
+
     // This is special handling for the Heart Rate Measurement profile.  Data parsing is
     // carried out as per profile specifications:
     // http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml
@@ -153,13 +157,10 @@ public class BluetoothLeService extends Service {
       Log.d(TAG, String.format("Received heart rate: %d", heartRate));
       intent.putExtra(EXTRA_DATA, String.valueOf(heartRate));
     } else {
-      // For all other profiles, writes the data formatted in HEX.
+      // For all other profiles, pass on the data as a byte array.
       final byte[] data = characteristic.getValue();
       if (data != null && data.length > 0) {
-        final StringBuilder stringBuilder = new StringBuilder(data.length);
-        for(byte byteChar : data)
-          stringBuilder.append(String.format("%02X ", byteChar));
-        intent.putExtra(EXTRA_DATA, new String(data) + "\n" + stringBuilder.toString());
+        intent.putExtra(EXTRA_DATA, characteristic.getValue());
       }
     }
     sendBroadcast(intent);
@@ -309,6 +310,7 @@ public class BluetoothLeService extends Service {
     }
     mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
 
+    //TODO (jos) Is this code needed for every different device we need to connect?
     // This is specific to Heart Rate Measurement.
     if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
       BluetoothGattDescriptor descriptor = characteristic.getDescriptor(

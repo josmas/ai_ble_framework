@@ -30,6 +30,10 @@ public class DisplayHeartRateActivity extends MainActivity {
    * TODO (jos) This method could return a list of lists with a Service and its Characteristics in
    * each row. I need the characteristics to either read from or set notifications in the mService.
    * So this method should filter only the Services we want, and add them to a list (of lists).
+   * TODO (jos) in fact, this method could be placed in the main class and pass a list of services
+   * here as a filter... let's see how it goes after creating the one for RFduino.
+   * //TODO (jos) after having created the one for RFDuino, this could go two ways; either make it
+   * generic and use a filter, or make it specific and only for the extension/device at hand.
    * @param supportedGattServices
    */
   @Override
@@ -104,5 +108,10 @@ public class DisplayHeartRateActivity extends MainActivity {
   @Override
   public void displayData(String data) {
     Log.i("BLE", "We got data: " + data);
+  }
+
+  @Override
+  protected void displayData(byte[] data) {
+    Log.i("BLE", "We got data: TESTING THIS STUFF - DELETE THE PREVIOUS ONE OF THIS WORKS " + data);
   }
 }
