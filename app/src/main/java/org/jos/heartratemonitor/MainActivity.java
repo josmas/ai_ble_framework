@@ -1,5 +1,6 @@
 package org.jos.heartratemonitor;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattService;
@@ -199,7 +200,7 @@ public abstract class MainActivity extends AppCompatActivity {
       return;
     }
     else if (resultCode == RESULT_OK){
-      Toast.makeText(this, "BLE Active, you can proceed; need to use this properly: " + mBluetoothAdapter.isEnabled(), Toast.LENGTH_LONG).show();
+      Toast.makeText(this, "BLE Active; all good to go!", Toast.LENGTH_LONG).show();
       return;
     }
   }
