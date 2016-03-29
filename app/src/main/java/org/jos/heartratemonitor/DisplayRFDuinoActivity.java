@@ -47,6 +47,10 @@ public class DisplayRFDuinoActivity extends MainActivity {
     if (supportedGattServices == null) return;
     String uuid;
 
+    //TODO (jos) Instead of looping and test, the following can be done:
+    // BluetoothGattService mBluetoothGattService = gatt.getService(UUID_SERVICE);
+    // BluetoothGattCharacteristic receiveCharacteristic = mBluetoothGattService.getCharacteristic(UUID_RECEIVE);
+
     for (BluetoothGattService gattService : supportedGattServices) {
       uuid = gattService.getUuid().toString();
       if (!uuid.equals(UUID_SERVICE.toString())) continue; // Skip if not interested
@@ -67,14 +71,18 @@ public class DisplayRFDuinoActivity extends MainActivity {
           // If there is an active notification on a characteristic, clear
           // it first so it doesn't update the data field on the user interface.
           if (mNotifyCharacteristic != null) {
-            bluetoothLeService.setCharacteristicNotification(mNotifyCharacteristic, false);
+            //TODO (jos) using the new method in order to make the service Generic. Have to test
+            // with Heart Rate monitor.
+            bluetoothLeService.setCharacteristicNotification(mNotifyCharacteristic, false,
+                UUID_RECEIVE, UUID_CLIENT_CONFIGURATION);
             mNotifyCharacteristic = null;
           }
           bluetoothLeService.readCharacteristic(gattCharacteristic);
         }
         if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
           mNotifyCharacteristic = gattCharacteristic;
-          bluetoothLeService.setCharacteristicNotification(gattCharacteristic, true);
+          bluetoothLeService.setCharacteristicNotification(gattCharacteristic, true,
+              UUID_RECEIVE, UUID_CLIENT_CONFIGURATION);
         }
       }
     }

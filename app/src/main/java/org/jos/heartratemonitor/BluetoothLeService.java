@@ -311,10 +311,38 @@ public class BluetoothLeService extends Service {
     mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
 
     //TODO (jos) Is this code needed for every different device we need to connect?
+    //TODO (jos) If I could not move this, I could send the CCCD with the call from the Activity
     // This is specific to Heart Rate Measurement.
     if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
       BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
           UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
+      descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+      mBluetoothGatt.writeDescriptor(descriptor);
+    }
+  }
+
+  /**
+   * TODO (jos) If this one works, it generalises the previous Notification method, so delete it if
+   * it works after trying it with the Heart Rate monitor.
+   * @param characteristic
+   * @param enabled
+   * @param TARGET_UUID
+   * @param CCCD
+   */
+  public void setCharacteristicNotification(BluetoothGattCharacteristic characteristic,
+                                            boolean enabled, UUID TARGET_UUID, UUID CCCD) {
+    Log.i("BLE", "New method for set notification - YES I AM USING IT with: " + enabled);
+    if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+      Log.w(TAG, "BluetoothAdapter not initialized");
+      return;
+    }
+    mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
+
+    // CCCD is needed to set up notifications on the device side.
+    Log.i("BLE", "UUID_T: " + TARGET_UUID + " and \nUUID_C: " + characteristic.getUuid());
+    if (TARGET_UUID.equals(characteristic.getUuid().toString())) { //TODO (jos) is this needed? probably for some devices
+      Log.i("BLE", "I am setting the Notification now: " + CCCD);
+      BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CCCD);
       descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
       mBluetoothGatt.writeDescriptor(descriptor);
     }
