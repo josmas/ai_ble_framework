@@ -114,11 +114,24 @@ public class BluetoothLeService extends Service {
     }
   };
 
+  /**
+   * This is the broadcast used for connection changes and discovered services. It is generic so it
+   * stays in this class.
+   * @param action
+   */
   private void broadcastUpdate(final String action) {
     final Intent intent = new Intent(action);
     sendBroadcast(intent);
   }
 
+  /**
+   * This is the specific broadcast for a Read or Changed Characteristic and it is specific of each
+   * device we are connecting to. It should be extracted to a subclass of this mService.
+   * TODO (jos) I have tried extending, but the lifecycle is getting in the way. Going to try and
+   * read the data in the Display class instead of in here; working with the RF sensor to try that.
+   * @param action
+   * @param characteristic
+   */
   private void broadcastUpdate(final String action,
                                final BluetoothGattCharacteristic characteristic) {
     final Intent intent = new Intent(action);
