@@ -13,8 +13,9 @@ import java.util.UUID;
  * Class that extends from the MainActivity in order to define what to do with Services and
  * Characteristics. MainActivity is Abstract and we use displayServices as a Template method.
  */
-public class DisplayActivity extends MainActivity {
+public class DisplayHeartRateActivity extends MainActivity {
 
+  //TODO (jos) move here all the constants from SampleGattAttributes that are needed on this Activity only.
   private final String LIST_NAME = "NAME";
   private final String LIST_UUID = "UUID";
   private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<>();
@@ -25,6 +26,12 @@ public class DisplayActivity extends MainActivity {
     super.onCreate(savedInstanceState);
   }
 
+  /**
+   * TODO (jos) This method could return a list of lists with a Service and its Characteristics in
+   * each row. I need the characteristics to either read from or set notifications in the mService.
+   * So this method should filter only the Services we want, and add them to a list (of lists).
+   * @param supportedGattServices
+   */
   @Override
   public void displayServices(List<BluetoothGattService> supportedGattServices) {
     Log.i("BLE", "All Services are: " + supportedGattServices);
@@ -46,7 +53,7 @@ public class DisplayActivity extends MainActivity {
       currentServiceData.put(LIST_UUID, uuid);
       gattServiceData.add(currentServiceData);
       Log.i("BLE", "\n\n-------------------------------------------------------------");
-      Log.i("BLE", "Service Data is: " + currentServiceData);
+      Log.i("BLE", "Service Data for heart rate: " + currentServiceData);
 
       ArrayList<HashMap<String, String>> gattCharacteristicGroupData = new ArrayList<>();
       List<BluetoothGattCharacteristic> gattCharacteristics = gattService.getCharacteristics();
@@ -56,17 +63,20 @@ public class DisplayActivity extends MainActivity {
       for (BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {
         uuid = gattCharacteristic.getUuid().toString();
         String characteristicFound = SampleGattAttributes.lookup(uuid, unknownCharaString);
-        if (characteristicFound.equals(unknownCharaString)) continue;
-        Log.i("BLE", "Characteristic is: " + gattCharacteristic);
+        if (characteristicFound.equals(unknownCharaString)) continue; // Skip if not interested.
+        Log.i("BLE", "Characteristic for heart rate: " + gattCharacteristic);
         charas.add(gattCharacteristic);
         HashMap<String, String> currentCharaData = new HashMap<>();
         currentCharaData.put(LIST_NAME, characteristicFound);
         currentCharaData.put(LIST_UUID, uuid);
         gattCharacteristicGroupData.add(currentCharaData);
-        Log.i("BLE", "Characteristic Data is: " + currentCharaData);
+        Log.i("BLE", "Characteristic Data for heart rate: " + currentCharaData);
+        // TODO (jos) In theory, this methods ends here, with a list of lists. The read and notification
+        // settings should be done in a separate method.
+
         // Tried to read the value from gattCharacteristic here, but seems like it's null at this
         // stage. It needs to be read in the service (on callback).
-        // Read and Notify for the heart rate measure
+        // Read and Notify for the heart rate measure; this should be its own method.
         if (UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT).equals(gattCharacteristic.getUuid())) {
 
           final int charaProp = gattCharacteristic.getProperties();
