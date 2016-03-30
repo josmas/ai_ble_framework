@@ -343,7 +343,12 @@ public class BluetoothLeService extends Service {
     if (TARGET_UUID.equals(characteristic.getUuid().toString())) { //TODO (jos) is this needed? probably for some devices
       Log.i("BLE", "I am setting the Notification now: " + CCCD);
       BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CCCD);
-      descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+      if (enabled){
+        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+      }
+      else {
+        descriptor.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
+      }
       mBluetoothGatt.writeDescriptor(descriptor);
     }
   }
