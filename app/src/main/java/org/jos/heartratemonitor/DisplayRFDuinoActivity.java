@@ -84,13 +84,6 @@ public class DisplayRFDuinoActivity extends MainActivity {
   }
 
   @Override
-  public void displayData(String data) {
-    Log.e("BLE", "THIS SHOULD NEVER BE CALLED: " + data);
-    //TODO (jos) this is likely to disappear when the custom data for Heart Rate is removed from the mService
-    // If it does not go away, consider throwing here.
-  }
-
-  @Override
   public void displayData(byte[] data) {
     if (data != null ) {
       Log.i("BLE", "GyroData (6 bytes): " + "\nX: " + gyroX(data) + "\nY: " + gyroY(data) + "\nZ: " + gyroZ(data));

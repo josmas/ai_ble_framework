@@ -11,6 +11,8 @@ import java.util.UUID;
 /**
  * Class that extends from the MainActivity in order to define what to do with Services and
  * Characteristics. MainActivity is Abstract and we use displayServices as a Template method.
+ *
+ * http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml
  */
 public class DisplayHeartRateActivity extends MainActivity {
 
@@ -30,6 +32,7 @@ public class DisplayHeartRateActivity extends MainActivity {
     attributes.put(HEART_RATE_MEASUREMENT, "Heart Rate Measurement");
     attributes.put(BATTERY_LEVEL_CHAR, "Battery Level Measurement");
   }
+
 
   public static String lookup(String uuid, String defaultName) {
     String name = attributes.get(uuid);
@@ -98,16 +101,31 @@ public class DisplayHeartRateActivity extends MainActivity {
         }
       }
     }
-
   }
 
-  @Override
-  public void displayData(String data) {
-    Log.i("BLE", "We got data: " + data);
-  }
-
+  /**
+   * Display data that comes in as a byte array. Operations specific to the device at hand need to
+   * be performed to translate the data into actual human readable values.
+   * @param data the data, as a byte array, containing the measures from the device.
+   */
   @Override
   protected void displayData(byte[] data) {
-    Log.i("BLE", "We got data: TESTING THIS STUFF - DELETE THE PREVIOUS ONE OF THIS WORKS " + data);
+
+    if (data == null) return;
+    if (mNotifyCharacteristic == null) return;
+
+    Log.d("BLE", "HR CHARACTERISTIC is: " + mNotifyCharacteristic);
+    BluetoothGattCharacteristic characteristic;
+    characteristic = mNotifyCharacteristic;
+
+    int flag = characteristic.getProperties();
+    int format = -1;
+    if ((flag & 0x01) != 0) {
+      format = BluetoothGattCharacteristic.FORMAT_UINT16;
+    } else {
+      format = BluetoothGattCharacteristic.FORMAT_UINT8;
+    }
+    final int heartRate = characteristic.getIntValue(format, 1);
+    Log.i("BLE", String.format("Received heart rate: %d", heartRate));
   }
 }

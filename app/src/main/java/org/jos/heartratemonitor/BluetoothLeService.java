@@ -125,43 +125,16 @@ public class BluetoothLeService extends Service {
   }
 
   /**
-   * This is the specific broadcast for a Read or Changed Characteristic and it is specific of each
-   * device we are connecting to. It should be extracted to a subclass of this mService.
-   * TODO (jos) I have tried extending, but the lifecycle is getting in the way. Going to try and
-   * read the data in the Display class instead of in here; working with the RF sensor to try that.
+   * This is the specific broadcast for a Read or Changed Characteristic.
    * @param action
    * @param characteristic
    */
   private void broadcastUpdate(final String action,
                                final BluetoothGattCharacteristic characteristic) {
     final Intent intent = new Intent(action);
-
-    //TODO (jos) I should be able to send everything as a byte array and do the formatting specific
-    // for heart rate measurements in the Activity. That way, this Service could be Generic, as long
-    // as the code for Notifications (below) can also be made generic.
-
-    // This is special handling for the Heart Rate Measurement profile.  Data parsing is
-    // carried out as per profile specifications:
-    // http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml
-    if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
-      int flag = characteristic.getProperties();
-      int format = -1;
-      if ((flag & 0x01) != 0) {
-        format = BluetoothGattCharacteristic.FORMAT_UINT16;
-        Log.d(TAG, "Heart rate format UINT16.");
-      } else {
-        format = BluetoothGattCharacteristic.FORMAT_UINT8;
-        Log.d(TAG, "Heart rate format UINT8.");
-      }
-      final int heartRate = characteristic.getIntValue(format, 1);
-      Log.d(TAG, String.format("Received heart rate: %d", heartRate));
-      intent.putExtra(EXTRA_DATA, String.valueOf(heartRate));
-    } else {
-      // For all other profiles, pass on the data as a byte array.
-      final byte[] data = characteristic.getValue();
-      if (data != null && data.length > 0) {
-        intent.putExtra(EXTRA_DATA, characteristic.getValue());
-      }
+    final byte[] data = characteristic.getValue();
+    if (data != null && data.length > 0) {
+      intent.putExtra(EXTRA_DATA, characteristic.getValue());
     }
     sendBroadcast(intent);
   }
@@ -298,32 +271,6 @@ public class BluetoothLeService extends Service {
 
   /**
    * Enables or disables notification on a give characteristic.
-   *
-   * @param characteristic Characteristic to act on.
-   * @param enabled If true, enable notification.  False otherwise.
-   */
-  public void setCharacteristicNotification(BluetoothGattCharacteristic characteristic,
-                                            boolean enabled) {
-    if (mBluetoothAdapter == null || mBluetoothGatt == null) {
-      Log.w(TAG, "BluetoothAdapter not initialized");
-      return;
-    }
-    mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
-
-    //TODO (jos) Is this code needed for every different device we need to connect?
-    //TODO (jos) If I could not move this, I could send the CCCD with the call from the Activity
-    // This is specific to Heart Rate Measurement.
-    if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
-      BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
-          UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
-      descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-      mBluetoothGatt.writeDescriptor(descriptor);
-    }
-  }
-
-  /**
-   * TODO (jos) If this one works, it generalises the previous Notification method, so delete it if
-   * it works after trying it with the Heart Rate monitor.
    * @param characteristic
    * @param enabled
    * @param TARGET_UUID
