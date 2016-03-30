@@ -1,5 +1,4 @@
 package org.jos.heartratemonitor;
-
 /*
  * Copyright (C) 2013 The Android Open Source Project
  *
@@ -38,6 +37,8 @@ import java.util.UUID;
 /**
  * Service for managing connection and data communication with a GATT server hosted on a
  * given Bluetooth LE device.
+ * This class was originally copied from the sample materials provided by Google. It has been since
+ * seriously modified.
  */
 public class BluetoothLeService extends Service {
   private final static String TAG = BluetoothLeService.class.getSimpleName();
@@ -52,16 +53,11 @@ public class BluetoothLeService extends Service {
   private static final int STATE_CONNECTING = 1;
   private static final int STATE_CONNECTED = 2;
 
-  public final static String ACTION_GATT_CONNECTED =
-      "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
-  public final static String ACTION_GATT_DISCONNECTED =
-      "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED";
-  public final static String ACTION_GATT_SERVICES_DISCOVERED =
-      "com.example.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED";
-  public final static String ACTION_DATA_AVAILABLE =
-      "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
-  public final static String EXTRA_DATA =
-      "com.example.bluetooth.le.EXTRA_DATA";
+  public final static String ACTION_GATT_CONNECTED = "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
+  public final static String ACTION_GATT_DISCONNECTED = "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED";
+  public final static String ACTION_GATT_SERVICES_DISCOVERED = "com.example.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED";
+  public final static String ACTION_DATA_AVAILABLE = "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
+  public final static String EXTRA_DATA = "com.example.bluetooth.le.EXTRA_DATA";
 
   // Implements callback methods for GATT events that the app cares about.  For example,
   // connection change and services discovered.

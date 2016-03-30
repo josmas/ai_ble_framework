@@ -21,6 +21,8 @@ public class DisplayHeartRateActivity extends MainActivity {
   public final static String CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
   public final static String BATTERY_LEVEL_SER = "0000180f-0000-1000-8000-00805f9b34fb";
   public final static String BATTERY_LEVEL_CHAR = "00002a19-0000-1000-8000-00805f9b34fb";
+  // TODO (jos) check if the following is the actual characteristic for notifications for Battery Level
+  // Do battery level notifications exist at all? Maybe it should just be read (polled).
   public final static String CLIENT_CHARACTERISTIC_CONFIG_BATTERY = "00002908-0000-1000-8000-00805f9b34fb";
   private static HashMap<String, String> attributes = new HashMap<>();
 
