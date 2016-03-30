@@ -331,24 +331,18 @@ public class BluetoothLeService extends Service {
    */
   public void setCharacteristicNotification(BluetoothGattCharacteristic characteristic,
                                             boolean enabled, UUID TARGET_UUID, UUID CCCD) {
-    Log.i("BLE", "New method for set notification - YES I AM USING IT with: " + enabled);
+    Log.i("BLE", "New method for set notification: " + enabled);
     if (mBluetoothAdapter == null || mBluetoothGatt == null) {
       Log.w(TAG, "BluetoothAdapter not initialized");
       return;
     }
-    mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
 
     // CCCD is needed to set up notifications on the device side.
-    Log.i("BLE", "UUID_T: " + TARGET_UUID + " and \nUUID_C: " + characteristic.getUuid());
-    if (TARGET_UUID.equals(characteristic.getUuid().toString())) { //TODO (jos) is this needed? probably for some devices
+    if (TARGET_UUID.equals(characteristic.getUuid())) { //TODO (jos) is this needed? probably for some devices
       Log.i("BLE", "I am setting the Notification now: " + CCCD);
       BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CCCD);
-      if (enabled){
-        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-      }
-      else {
-        descriptor.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
-      }
+      mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
+      descriptor.setValue(enabled ? BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE : BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
       mBluetoothGatt.writeDescriptor(descriptor);
     }
   }

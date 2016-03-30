@@ -275,12 +275,14 @@ public abstract class MainActivity extends AppCompatActivity {
         // is not treated differently in the service. For now, the String is used for that data and
         // the byte array for any other data.
         Bundle bundle = intent.getExtras();
-        Object data = bundle.get(BluetoothLeService.EXTRA_DATA);
-        if (data instanceof String){
-          displayData((String) data);
-        }
-        else if (data instanceof byte []){
-          displayData((byte[]) data);
+        if (bundle != null) {
+          Object data = bundle.get(BluetoothLeService.EXTRA_DATA);
+          if (data instanceof String){
+            displayData((String) data);
+          }
+          else if (data instanceof byte []){
+            displayData((byte[]) data);
+          }
         }
       }
     }

@@ -1,6 +1,7 @@
 package org.jos.heartratemonitor;
 
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
 import android.util.Log;
@@ -47,25 +48,17 @@ public class DisplayRFDuinoActivity extends MainActivity {
     if (supportedGattServices == null) return;
     String uuid;
 
-    //TODO (jos) Instead of looping and test, the following can be done:
-    // BluetoothGattService mBluetoothGattService = gatt.getService(UUID_SERVICE);
-    // BluetoothGattCharacteristic receiveCharacteristic = mBluetoothGattService.getCharacteristic(UUID_RECEIVE);
-
     for (BluetoothGattService gattService : supportedGattServices) {
       uuid = gattService.getUuid().toString();
       if (!uuid.equals(UUID_SERVICE.toString())) continue; // Skip if not interested
       Log.i("BLE", "\n\n-------------------------------------------------------------");
       Log.i("BLE", "Service Data for RFDuino: " + gattService.getUuid());
-      // Loops through available Characteristics until it finds the interesting ones.
-      for (BluetoothGattCharacteristic gattCharacteristic : gattService.getCharacteristics()) {
-        uuid = gattCharacteristic.getUuid().toString();
-        if (!uuid.equals(UUID_RECEIVE.toString())) continue; // Skip if not interested.
-        Log.i("BLE", "Characteristic for RFDuino: " + gattCharacteristic.getUuid());
-
+      // Instead of looping, let's just grab it!
+      BluetoothGattCharacteristic gattCharacteristic = gattService.getCharacteristic(UUID_RECEIVE);
+      if (gattCharacteristic != null) {
         // Tried to read the value from gattCharacteristic here, but seems like it's null at this
         // stage. It needs to be read in the service (on callback).
         // Read and Notify for the heart rate measure; this should be its own method.
-
         final int charaProp = gattCharacteristic.getProperties();
         if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
           // If there is an active notification on a characteristic, clear
@@ -84,6 +77,8 @@ public class DisplayRFDuinoActivity extends MainActivity {
           bluetoothLeService.setCharacteristicNotification(gattCharacteristic, true,
               UUID_RECEIVE, UUID_CLIENT_CONFIGURATION);
         }
+      } else {
+        Log.e("BLE", "RFduino received characteristic not found!");
       }
     }
   }
