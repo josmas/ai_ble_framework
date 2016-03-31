@@ -64,8 +64,6 @@ public class DisplayRFDuinoActivity extends MainActivity {
           // If there is an active notification on a characteristic, clear
           // it first so it doesn't update the data field on the user interface.
           if (mNotifyCharacteristic != null) {
-            //TODO (jos) using the new method in order to make the service Generic. Have to test
-            // with Heart Rate monitor.
             bluetoothLeService.setCharacteristicNotification(mNotifyCharacteristic, false,
                 UUID_RECEIVE, UUID_CLIENT_CONFIGURATION);
             mNotifyCharacteristic = null;
@@ -86,14 +84,18 @@ public class DisplayRFDuinoActivity extends MainActivity {
   @Override
   public void displayData(byte[] data) {
     if (data != null ) {
-      Log.i("BLE", "GyroData (6 bytes): " + "\nX: " + gyroX(data) + "\nY: " + gyroY(data) + "\nZ: " + gyroZ(data));
+      Log.i("BLE", "GyroData (6 bytes): "
+          + "\nX: " + gyroX(data)
+          + "\nY: " + gyroY(data)
+          + "\nZ: " + gyroZ(data));
 
       // Accelerometer data
       float heading = filterYaw.lowPass(accelX(data));
       float pitch = filterPitch.lowPass(accelY(data));
       float roll = filterRoll.lowPass(accelZ(data));
 
-      Log.i("BLE", "accelData (6 bytes): "   + "\nX: " + heading
+      Log.i("BLE", "accelData (6 bytes): "
+          + "\nX: " + heading
           + "\nY: " + pitch
           + "\nZ: " + roll);
     }

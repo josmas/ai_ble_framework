@@ -50,7 +50,8 @@ public class DisplayHeartRateActivity extends MainActivity {
 
   /**
    * Discovering Services and Characteristics. For now, setting up Notification for hear rate, but
-   * the battery service could also be used. The monitor has also additional services.
+   * the battery service could also be used. The monitor has also additional services that are not
+   * used for now.
    * @param supportedGattServices
    */
   @Override
